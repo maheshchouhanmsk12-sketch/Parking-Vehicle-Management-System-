@@ -1,0 +1,48 @@
+# Apache Configuration for Render Environment
+# Vehicle Parking Management System
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # 1. Reverse Proxy Port-Stripping Rule:
+    # If Apache attempts to redirect and appends an internal port like :10000, strip it off
+    RewriteCond %{HTTP_HOST} ^([^:]+):[0-9]+$
+    RewriteCond %{HTTP:X-Forwarded-Proto} =https [OR]
+    RewriteCond %{HTTPS} on
+    RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+
+    RewriteCond %{HTTP_HOST} ^([^:]+):[0-9]+$
+    RewriteCond %{HTTP:X-Forwarded-Proto} !^https$
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
+
+    # 2. Direct File Routing & Alias Rules (Prevent Directory Trailing Slash Redirects):
+    # Route /admin or /admin/ directly to login.php
+    RewriteRule ^admin/?$ login.php [L,QSA]
+    RewriteRule ^admin/login(\.php)?$ login.php [L,QSA]
+    RewriteRule ^admin/index(\.php)?$ index.php [L,QSA]
+    RewriteRule ^parkings/?$ index.php [L,QSA]
+
+    # 3. Protect Sensitive Files & Directories
+    <FilesMatch "\.(original|sql|env|sh|log|git|md|yml|yaml)$">
+        Require all denied
+    </FilesMatch>
+    <Files "Dockerfile">
+        Require all denied
+    </Files>
+    <Files "render.yaml">
+        Require all denied
+    </Files>
+</IfModule>
+
+<IfModule mod_dir.c>
+    DirectoryIndex index.php login.php index.html
+</IfModule>
+
+# Security & Reverse Proxy Headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set X-Frame-Options "SAMEORIGIN"
+</IfModule>

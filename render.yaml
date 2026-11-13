@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: parking-vehicle-management
+    env: docker
+    plan: free
+    region: oregon
+    dockerfilePath: Dockerfile
+    healthCheckPath: /db_setup.php
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: DB_SERVER
+        sync: false
+      - key: DB_PORT
+        value: 26284
+      - key: DB_USERNAME
+        value: avnadmin
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: defaultdb
+      - key: DB_SSL
+        value: "true"
+      - key: BASE_URL
+        sync: false
