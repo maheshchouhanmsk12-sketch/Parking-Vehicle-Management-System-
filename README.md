@@ -1,6 +1,25 @@
 # 🚗 Vehicle Parking Management System
 
+> ### 🔑 Admin Login Credentials (लॉगिन आईडी और पासवर्ड)
+> | Role | Admin ID / Username | Password | Login URL |
+> | :--- | :--- | :--- | :--- |
+> | **Administrator** | `admin` | `admin123` | `/login.php` (or `/`) |
+>
+> **Default Admin Access:**
+> - **ID / Username:** `admin`
+> - **Password:** `admin123`
+
+---
+
 A modern, cloud-ready **Vehicle Parking Management System** built with **PHP 8.2 & Apache**, containerized via **Docker**, and engineered specifically for deployment on **Render** with **Aiven Cloud MySQL**.
+
+---
+
+## 🔐 Admin Login Credentials
+
+| Role | Username / ID | Password | Access URL |
+| :--- | :--- | :--- | :--- |
+| **Administrator** | `admin` | `admin123` | `/login.php` or `/` |
 
 ---
 
@@ -8,6 +27,7 @@ A modern, cloud-ready **Vehicle Parking Management System** built with **PHP 8.2
 
 - **PHP 8.x Fully Compatible**: Safe constructor property initializations, `mysqli_result` null checks, strict types handling, and zero deprecated function notices.
 - **Aiven Cloud MySQL Ready**: Native SSL encryption (`MYSQLI_CLIENT_SSL` / `require_secure_transport=ON`), 5-digit custom ports (e.g., `26284`), and dynamic `.env` configuration.
+- **Auto-Database Schema Provisioning**: If connected to a fresh or empty database (such as Aiven `defaultdb`), the system automatically provisions and seeds all tables (`category`, `parking_locations`, `parked_list`, `parking_movement`, `users`, `system_settings`) and initializes the default `admin` account on first visit.
 - **Render Cloud Native**:
   - Base Image: `php:8.2-apache` with `mysqli`, `pdo_mysql`, `gd`, `zip`, `mod_rewrite`, `headers`.
   - Dynamic `$PORT` binding via `start.sh`.
@@ -17,14 +37,6 @@ A modern, cloud-ready **Vehicle Parking Management System** built with **PHP 8.2
   - Live SSL connection health check.
   - Automatically parses and imports `database/parking_db.sql` with foreign key safety (`SET FOREIGN_KEY_CHECKS=0`).
   - Verifies tables and default admin user credentials with 1 click.
-
----
-
-## 🔐 Default Admin Login Credentials
-
-| Role | Username | Password | Access URL |
-| :--- | :--- | :--- | :--- |
-| **Administrator** | `admin` | `admin123` | `/login.php` or `/` |
 
 ---
 
@@ -57,7 +69,7 @@ https://<your-render-url>.onrender.com/db_setup.php
 1. Verify the connection status badge turns **Green (Connected)**.
 2. If credentials are not set in environment variables, paste your **Aiven Service URI** or fill the form and click **Save .env**.
 3. Click **1-Click Import Database** to auto-create all tables, seed vehicle categories, locations, and configure the default admin account.
-4. Click **Proceed to Login** to start using the system immediately!
+4. Click **Proceed to Login** to start using the system immediately with ID: `admin` and Password: `admin123`!
 
 ---
 
@@ -75,7 +87,7 @@ https://<your-render-url>.onrender.com/db_setup.php
    - `DB_NAME`: `defaultdb`
    - `DB_SSL`: `true`
 5. Click **Create Web Service**.
-6. Once deployed, visit `https://<your-app>.onrender.com/db_setup.php` to run the 1-click importer.
+6. Once deployed, visit `https://<your-app>.onrender.com/login.php` to log in with `admin` / `admin123`.
 
 ### Method 2: Render Blueprint (`render.yaml`)
 1. In Render Dashboard, click **Blueprints** > **New Blueprint Instance**.
@@ -93,7 +105,7 @@ https://<your-render-url>.onrender.com/db_setup.php
 php -S localhost:8000
 
 # Open in browser
-http://localhost:8000/db_setup.php
+http://localhost:8000/login.php
 ```
 
 ### Using Docker:
@@ -135,4 +147,3 @@ docker run -p 10000:10000 -e DB_SERVER="your-host" -e DB_PORT=26284 -e DB_USERNA
 
 ## 🛡️ License & Original Backups
 All original codebase files are safely backed up with `.original` extensions as per project requirements.
-
