@@ -17,6 +17,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Enable required Apache modules
 RUN a2enmod rewrite headers remoteip
 
+# Enable PHP output buffering globally to prevent headers already sent issues
+RUN echo "output_buffering = 4096" > /usr/local/etc/php/conf.d/output-buffering.ini
+
 # Configure Apache for Render reverse proxy and AllowOverride All
 RUN sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf \
     && echo "ServerTokens Prod" >> /etc/apache2/apache2.conf \

@@ -1,3 +1,13 @@
+<?php 
+ob_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if(isset($_SESSION['login_id'])) {
+    header("Location: index.php?page=home");
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,15 +20,6 @@
 
 <?php include('./header.php'); ?>
 <?php include('./db_connect.php'); ?>
-<?php 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if(isset($_SESSION['login_id'])) {
-    header("location:index.php?page=home");
-    exit;
-}
-?>
 
 </head>
 <style>

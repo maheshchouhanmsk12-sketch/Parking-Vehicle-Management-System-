@@ -1,3 +1,13 @@
+<?php
+ob_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (!isset($_SESSION['login_id'])) {
+    header('Location: login.php');
+    exit;
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,15 +17,7 @@
 
   <title>Vehicle Parking Management System</title>
  	
-
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if(!isset($_SESSION['login_id'])) {
-    header('location:login.php');
-    exit;
-}
 include('./header.php'); 
 ?>
 

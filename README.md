@@ -135,3 +135,4 @@ docker run -p 10000:10000 -e DB_SERVER="your-host" -e DB_PORT=26284 -e DB_USERNA
 
 ## 🛡️ License & Original Backups
 All original codebase files are safely backed up with `.original` extensions as per project requirements.
+

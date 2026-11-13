@@ -557,3 +557,4 @@ if (php_sapi_name() === 'cli') {
 <script src="assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
+
