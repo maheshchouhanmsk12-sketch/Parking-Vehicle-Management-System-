@@ -1,4 +1,3 @@
-
 <style>
 	.collapse a{
 		text-indent:10px;
@@ -7,7 +6,7 @@
 <nav id="sidebar" class='mx-lt-5 bg-dark' >
 		
 		<div class="sidebar-list">
-				<?php if($_SESSION['login_type'] == 1): ?>
+				<?php if(!isset($_SESSION['login_type']) || $_SESSION['login_type'] == 1): ?>
 
 				<a href="index.php?page=home" class="nav-item nav-home"><span class='icon-field'><i class="fa fa-home"></i></span> Home</a>
 				<a  class="nav-item nav-manage_park nav-collapse" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample"><span class='icon-field'><i class="fa fa-map"></i></span> Parking <span class="float-right"><i class="fa fa-angle-down"></i></span></a>

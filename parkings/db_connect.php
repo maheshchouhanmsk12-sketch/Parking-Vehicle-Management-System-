@@ -4,6 +4,9 @@
  * Optimized for Aiven Cloud MySQL & PHP 8.x
  */
 
+// Disable mysqli exception throwing for safe, graceful query handling in PHP 8.1+
+mysqli_report(MYSQLI_REPORT_OFF);
+
 // Helper to load .env file if present
 if (!function_exists('loadEnvFile')) {
     function loadEnvFile($path) {
@@ -18,7 +21,6 @@ if (!function_exists('loadEnvFile')) {
                 list($key, $val) = explode('=', $line, 2);
                 $key = trim($key);
                 $val = trim($val);
-                // Strip quotes if present
                 $val = trim($val, "\"'");
                 if (!array_key_exists($key, $_SERVER) && !array_key_exists($key, $_ENV)) {
                     putenv("$key=$val");
@@ -51,7 +53,7 @@ if (!function_exists('getDbEnv')) {
     }
 }
 
-// Check if a database connection URI is provided (e.g. mysql://avnadmin:pass@host:port/dbname?ssl-mode=REQUIRED)
+// Check if a database connection URI is provided
 $db_uri = getDbEnv(array('DATABASE_URL', 'MYSQL_URL', 'AIVEN_MYSQL_URL'));
 $parsed_uri = !empty($db_uri) ? parse_url($db_uri) : null;
 
@@ -68,7 +70,6 @@ if ($ssl_env === 'false' || $ssl_env === '0' || $ssl_env === 'off' || $ssl_env =
 } elseif ($ssl_env === 'true' || $ssl_env === '1' || $ssl_env === 'on' || $ssl_env === 'require' || $ssl_env === 'required') {
     $db_ssl = true;
 } else {
-    // Auto-detect: if host is not localhost/127.0.0.1 or port != 3306, enable SSL
     $db_ssl = ($db_server !== 'localhost' && $db_server !== '127.0.0.1');
 }
 
@@ -85,7 +86,6 @@ if (!$conn) {
     die("Database initialization error: mysqli_init failed.");
 }
 
-// Set connection timeout (seconds)
 $conn->options(MYSQLI_OPT_CONNECT_TIMEOUT, 10);
 
 // Configure SSL for Aiven Cloud MySQL
@@ -94,7 +94,6 @@ if ($db_ssl) {
     if (defined('MYSQLI_OPT_SSL_VERIFY_SERVER_CERT')) {
         $conn->options(MYSQLI_OPT_SSL_VERIFY_SERVER_CERT, false);
     }
-    // Check if optional CA cert is specified
     $ssl_ca = getDbEnv(array('DB_SSL_CA', 'MYSQL_SSL_CA', 'AIVEN_CA_CERT'), null);
     if (!empty($ssl_ca) && file_exists($ssl_ca)) {
         $conn->ssl_set(NULL, NULL, $ssl_ca, NULL, NULL);
@@ -112,10 +111,8 @@ if (!$connected) {
     $error_msg = $conn->connect_error ?: mysqli_connect_error();
     $error_no  = $conn->connect_errno ?: mysqli_connect_errno();
 
-    // If script running from Web and not db_setup.php, show informative error with setup link
     $current_script = basename($_SERVER['SCRIPT_NAME'] ?? '');
     if (php_sapi_name() !== 'cli' && $current_script !== 'db_setup.php') {
-        // Output clean HTML error
         ?>
         <!DOCTYPE html>
         <html lang="en">
@@ -154,6 +151,51 @@ if (!$connected) {
         exit;
     }
 } else {
-    // Set charset
     @$conn->set_charset("utf8mb4");
+
+    // AUTOMATIC DATABASE INITIALIZATION:
+    // If the connected database is empty (e.g. tables like 'users' or 'parked_list' do not exist),
+    // automatically import the database schema from parking_db.sql so the application works instantly!
+    $chk_table = @$conn->query("SHOW TABLES LIKE 'users'");
+    if (!$chk_table || $chk_table->num_rows == 0) {
+        $sql_file = __DIR__ . '/database/parking_db.sql';
+        if (!file_exists($sql_file) && file_exists(__DIR__ . '/parkings/database/parking_db.sql')) {
+            $sql_file = __DIR__ . '/parkings/database/parking_db.sql';
+        }
+        if (file_exists($sql_file)) {
+            @$conn->query("SET FOREIGN_KEY_CHECKS=0");
+            @$conn->query("SET SQL_MODE='NO_AUTO_VALUE_ON_ZERO'");
+
+            $sql_content = file_get_contents($sql_file);
+            $sql_content = preg_replace('!/\*.*?\*/!s', '', $sql_content);
+            $lines = explode("\n", $sql_content);
+            $clean_sql = '';
+            foreach ($lines as $line) {
+                $trimmed = trim($line);
+                if (strpos($trimmed, '--') === 0 || strpos($trimmed, '#') === 0) continue;
+                $clean_sql .= $line . "\n";
+            }
+            $statements = preg_split('/;\s*(\r\n|\n|\r)/', $clean_sql);
+            foreach ($statements as $stmt) {
+                $stmt = trim($stmt);
+                if (!empty($stmt)) {
+                    @$conn->query($stmt);
+                }
+            }
+
+            @$conn->query("CREATE TABLE IF NOT EXISTS `system_settings` (
+                `id` int(30) NOT NULL AUTO_INCREMENT,
+                `name` text NOT NULL,
+                `email` varchar(200) NOT NULL,
+                `contact` varchar(20) NOT NULL,
+                `cover_img` text NOT NULL,
+                `about_content` text NOT NULL,
+                PRIMARY KEY (`id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+            $pass_hash = md5('admin123');
+            @$conn->query("INSERT INTO `users` (`id`, `name`, `type`, `username`, `password`) VALUES (1, 'Administrator', 1, 'admin', '{$pass_hash}') ON DUPLICATE KEY UPDATE `password` = '{$pass_hash}'");
+            @$conn->query("SET FOREIGN_KEY_CHECKS=1");
+        }
+    }
 }

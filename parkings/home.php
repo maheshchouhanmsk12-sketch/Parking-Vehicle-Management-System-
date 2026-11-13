@@ -16,8 +16,12 @@
                     <span class="float-right summary_icon"><i class="fa fa-car"></i></span>
                     <h4><b>
                         <?php 
-                        $pq = $conn->query("SELECT * FROM parked_list where status = 1");
-                        echo ($pq && $pq instanceof mysqli_result) ? $pq->num_rows : 0;
+                        try {
+                            $pq = @$conn->query("SELECT * FROM parked_list where status = 1");
+                            echo ($pq && $pq instanceof mysqli_result) ? $pq->num_rows : 0;
+                        } catch (Throwable $e) {
+                            echo 0;
+                        }
                         ?>
                     </b></h4>
                     <p><b>Total Parked Vehicle</b></p>
@@ -30,8 +34,12 @@
                     <span class="float-right summary_icon"><i class="fa fa-car"></i></span>
                     <h4><b>
                         <?php 
-                        $cq = $conn->query("SELECT * FROM parked_list where status = 2");
-                        echo ($cq && $cq instanceof mysqli_result) ? $cq->num_rows : 0;
+                        try {
+                            $cq = @$conn->query("SELECT * FROM parked_list where status = 2");
+                            echo ($cq && $cq instanceof mysqli_result) ? $cq->num_rows : 0;
+                        } catch (Throwable $e) {
+                            echo 0;
+                        }
                         ?>
                     </b></h4>
                     <p><b>Total Checked-Out Vehicle</b></p>
@@ -44,7 +52,7 @@
 			<div class="col-lg-12">
     			<div class="card">
     				<div class="card-body">
-    				<?php echo "Welcome back " . (isset($_SESSION['login_name']) ? htmlspecialchars($_SESSION['login_name']) : 'User') . "!" ?>
+    				<?php echo "Welcome back " . (isset($_SESSION['login_name']) ? htmlspecialchars($_SESSION['login_name']) : 'Administrator') . "!" ?>
     					<hr>	
 
                         <div class="row">
@@ -55,29 +63,31 @@
                                         <th class="text-center">Available</th>
                                     </tr>
                                     <?php
-                                    $cat = $conn->query("SELECT * FROM category order by name asc");
-                                    if ($cat && $cat instanceof mysqli_result):
-                                        while($crow = $cat->fetch_assoc()):
+                                    try {
+                                        $cat = @$conn->query("SELECT * FROM category order by name asc");
+                                        if ($cat && $cat instanceof mysqli_result):
+                                            while($crow = $cat->fetch_assoc()):
                                     ?>
                                     <tr>
                                         <th class="text-center" colspan="2"><?php echo htmlspecialchars($crow['name']) ?></th>
                                     </tr>
                                     <?php 
-                                        $location = $conn->query("SELECT * FROM parking_locations where category_id = '".$crow['id']."'  order by location asc");
-                                        if ($location && $location instanceof mysqli_result):
-                                            while($lrow = $location->fetch_assoc()):
-                                                $in_q = $conn->query("SELECT * FROM parked_list where status = 1 and location_id = ".$lrow['id']);
-                                                $in = ($in_q && $in_q instanceof mysqli_result) ? $in_q->num_rows : 0;
-                                                $available = $lrow['capacity'] - $in;
+                                                $location = @$conn->query("SELECT * FROM parking_locations where category_id = '".$crow['id']."' order by location asc");
+                                                if ($location && $location instanceof mysqli_result):
+                                                    while($lrow = $location->fetch_assoc()):
+                                                        $in_q = @$conn->query("SELECT * FROM parked_list where status = 1 and location_id = ".$lrow['id']);
+                                                        $in = ($in_q && $in_q instanceof mysqli_result) ? $in_q->num_rows : 0;
+                                                        $available = $lrow['capacity'] - $in;
                                     ?>
                                     <tr>
                                         <td><?php echo htmlspecialchars($lrow['location']) ?></td>
                                         <td class="text-center"><?php echo $available ?></td>
                                     </tr>
+                                            <?php endwhile; ?>
+                                            <?php endif; ?>
                                         <?php endwhile; ?>
                                         <?php endif; ?>
-                                    <?php endwhile; ?>
-                                    <?php endif; ?>
+                                    <?php } catch (Throwable $e) {} ?>
                                 </table>
                             </div>
                         </div>      			

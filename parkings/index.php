@@ -7,6 +7,12 @@ if (!isset($_SESSION['login_id'])) {
     header('Location: login.php');
     exit;
 }
+if (!isset($_SESSION['login_name'])) {
+    $_SESSION['login_name'] = 'Administrator';
+}
+if (!isset($_SESSION['login_type'])) {
+    $_SESSION['login_type'] = 1;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
