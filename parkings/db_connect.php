@@ -154,10 +154,10 @@ if (!$connected) {
     @$conn->set_charset("utf8mb4");
 
     // AUTOMATIC DATABASE INITIALIZATION:
-    // If the connected database is empty (e.g. tables like 'users' or 'parked_list' do not exist),
-    // automatically import the database schema from parking_db.sql so the application works instantly!
-    $chk_table = @$conn->query("SHOW TABLES LIKE 'users'");
-    if (!$chk_table || $chk_table->num_rows == 0) {
+    // If the database is empty or has no categories/locations yet,
+    // automatically import the database schema & seed data from parking_db.sql so the dashboard looks complete!
+    $chk_cat = @$conn->query("SELECT id FROM category LIMIT 1");
+    if (!$chk_cat || $chk_cat->num_rows == 0) {
         $sql_file = __DIR__ . '/database/parking_db.sql';
         if (!file_exists($sql_file) && file_exists(__DIR__ . '/parkings/database/parking_db.sql')) {
             $sql_file = __DIR__ . '/parkings/database/parking_db.sql';
